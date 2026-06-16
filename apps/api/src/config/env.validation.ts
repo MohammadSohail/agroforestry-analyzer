@@ -20,6 +20,12 @@ export const envSchema = z.object({
   STORAGE_DIR: z.string().default('./data/uploads'),
   PUBLIC_BASE_URL: z.string().url().default('http://localhost:3000'),
 
+  // Seed the demo dataset on boot when the plots table is empty.
+  SEED_ON_BOOT: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((v) => v === 'true'),
+
   CORS_ORIGINS: z.string().default('http://localhost:5173'),
 });
 
