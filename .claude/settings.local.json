@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "WebFetch(domain:weather-ai.co)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm lint *)",
+      "Bash(pnpm build *)",
+      "Bash(pnpm test:e2e)",
+      "Bash(docker build *)",
+      "Bash(docker rm *)",
+      "Bash(pnpm --filter @agro/api prisma:generate)",
+      "Bash(pnpm -r lint)",
+      "Bash(pnpm --filter @agro/api test)",
+      "Bash(pnpm --filter @agro/api test:e2e)",
+      "Bash(pnpm -r build)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(grep -E '\\(^|/\\)\\\\.env$|node_modules|/dist/|/data/')"
+    ]
+  }
+}

@@ -1,0 +1,50 @@
+# Render Blueprint — one-click deploy of the API (Docker web service), a managed
+# Postgres database, and the React frontend (static site).
+#   1. Push this repo to GitHub.
+#   2. Render Dashboard -> New -> Blueprint -> select the repo.
+#   3. After the first deploy, set the `sync: false` vars (see README) and redeploy.
+
+databases:
+  - name: agro-postgres
+    plan: free
+    databaseName: agroforestry
+    user: agro
+
+services:
+  # ---- API ----
+  - type: web
+    name: agro-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: agro-postgres
+          property: connectionString
+      - key: PORT
+        value: 3000
+      - key: WEATHER_AI_MODE
+        value: mock # set to "live" and provide WEATHER_AI_API_KEY to use the real API
+      - key: WEATHER_AI_API_KEY
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false # set to the API's own URL, e.g. https://agro-api.onrender.com
+      - key: CORS_ORIGINS
+        sync: false # set to the web URL, e.g. https://agro-web.onrender.com
+
+  # ---- Web (static site) ----
+  - type: web
+    name: agro-web
+    runtime: static
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @agro/web build
+    staticPublishPath: ./apps/web/dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false # set to the API URL, e.g. https://agro-api.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

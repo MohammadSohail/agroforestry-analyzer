@@ -1,0 +1,24 @@
+{
+  "name": "agroforestry-analyzer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Agroforestry Analyzer — a clean, hexagonal NestJS + React app built on the WeatherAI developer API.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @agro/api start:dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "prisma:migrate": "pnpm --filter @agro/api prisma:migrate",
+    "prisma:seed": "pnpm --filter @agro/api prisma:seed"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3"
+  },
+  "packageManager": "pnpm@9.12.0"
+}

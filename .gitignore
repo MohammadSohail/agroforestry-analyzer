@@ -1,0 +1,23 @@
+node_modules/
+dist/
+build/
+coverage/
+*.log
+.DS_Store
+
+# env
+.env
+.env.local
+*.local
+
+# prisma generated client
+apps/api/node_modules/.prisma
+
+# uploaded images (local disk storage)
+data/
+apps/api/data/
+
+# editor
+.idea/
+.vscode/*
+!.vscode/extensions.json

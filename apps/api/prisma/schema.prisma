@@ -1,0 +1,65 @@
+// Agroforestry Analyzer — data model.
+// A Plot is a parcel of land; each Analysis is one tree-canopy assessment run
+// against an uploaded image via the WeatherAI /v1/trees/analyze endpoint.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Plot {
+  id             String     @id @default(uuid()) @db.Uuid
+  name           String
+  latitude       Float
+  longitude      Float
+  areaAcres      Float?
+  primarySpecies String?
+  notes          String?
+  analyses       Analysis[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([createdAt])
+  @@map("plots")
+}
+
+enum AnalysisStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model Analysis {
+  id                String         @id @default(uuid()) @db.Uuid
+  plot              Plot           @relation(fields: [plotId], references: [id], onDelete: Cascade)
+  plotId            String         @db.Uuid
+  status            AnalysisStatus @default(PENDING)
+
+  // Provider-derived results
+  treeCount         Int?
+  densityPerAcre    Float?
+  canopyCoveragePct Float?
+  confidenceScore   Float?
+  speciesGuess      String?
+  healthBreakdown   Json? // e.g. { "healthy": 0.7, "stressed": 0.2, "dead": 0.1 }
+  observations      String[]       @default([])
+  recommendations   String[]       @default([])
+
+  // Image references
+  sourceImageKey    String? // key in the storage adapter (local disk / S3)
+  sourceImageUrl    String?
+  overlayImageUrl   String?
+
+  // Provenance / errors
+  providerRequestId String?
+  failureReason     String?
+
+  createdAt         DateTime       @default(now())
+
+  @@index([plotId, createdAt])
+  @@map("analyses")
+}
