@@ -2,6 +2,7 @@ import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import type { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import { Logger as PinoLogger } from 'nestjs-pino';
 import { join, resolve } from 'node:path';
@@ -20,6 +21,14 @@ async function bootstrap(): Promise<void> {
   // Security headers; allow cross-origin resource loads so the SPA can render stored images.
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.enableCors({ origin: config.corsOrigins, credentials: true });
+
+  // Friendly root: send visitors to the interactive docs, and quietly answer favicon probes.
+  // Registered before the Nest router so it takes precedence over the 404 fallback.
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.method === 'GET' && req.path === '/') return res.redirect('/docs');
+    if (req.method === 'GET' && req.path === '/favicon.ico') return res.status(204).end();
+    return next();
+  });
 
   // /api/v1/... — URI versioning keeps breaking changes additive.
   app.setGlobalPrefix('api', { exclude: ['health'] });
