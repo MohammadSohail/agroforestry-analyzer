@@ -215,22 +215,34 @@ in-memory fakes and the provider uses the mock. The same commands run in CI
 
 ## Deployment (Render)
 
-The repo ships a `render.yaml` blueprint that provisions three resources: a **Postgres**
-database, the **API** (Docker web service), and the **web** dashboard (static site).
+**Single service.** The `render.yaml` blueprint provisions a **Postgres** database and one
+**Docker web service** whose image builds *both* the React dashboard and the NestJS API. The API
+then serves everything from one origin:
+
+| Path | Serves |
+|---|---|
+| `/` | React dashboard (UI) |
+| `/docs` | Swagger UI |
+| `/api/v1/*` | REST API |
+| `/health` | health check |
 
 1. Push this repo to GitHub.
-2. Render Dashboard → **New → Blueprint** → pick the repo → Apply. The API runs
-   `prisma migrate deploy` on every boot.
-3. After the first deploy, set these `sync: false` env vars and redeploy:
-   - **agro-api** → `PUBLIC_BASE_URL` = the API's URL (e.g. `https://agro-api.onrender.com`),
-     `CORS_ORIGINS` = the web URL. (Set `WEATHER_AI_MODE=live` + `WEATHER_AI_API_KEY` to use the
-     real API.)
-   - **agro-web** → `VITE_API_URL` = the API's URL.
+2. Render Dashboard → **New → Blueprint** → pick the repo → Apply. The container runs
+   `prisma migrate deploy` on boot, then starts the API.
+3. After the first deploy, set `PUBLIC_BASE_URL` to the service's own URL (used to build
+   stored-image links) and redeploy. To use the real API instead of the mock, set
+   `WEATHER_AI_MODE=live` + `WEATHER_AI_API_KEY`.
 
-The API image is also runnable anywhere Docker is:
+> **Deploying as a Render "Node" service instead of Docker?** Use these commands (the build must
+> compile the web app too, since the API serves it):
+> - **Build:** `corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm --filter @agro/web build && pnpm --filter @agro/api exec prisma generate && pnpm --filter @agro/api build`
+> - **Start:** `pnpm --filter @agro/api exec prisma migrate deploy && node apps/api/dist/main.js`
+
+The same image runs anywhere Docker does:
 ```bash
 docker build -f apps/api/Dockerfile -t agro-api .
 docker run -p 3000:3000 -e DATABASE_URL=… -e WEATHER_AI_MODE=mock agro-api
+# → dashboard at http://localhost:3000, docs at /docs
 ```
 
 ### Production notes / honest caveats

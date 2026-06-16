@@ -1,8 +1,9 @@
-# Render Blueprint — one-click deploy of the API (Docker web service), a managed
-# Postgres database, and the React frontend (static site).
+# Render Blueprint — one-click deploy of a managed Postgres database and a single
+# Docker web service that builds BOTH the React dashboard and the NestJS API. The
+# API serves the dashboard at "/", Swagger at "/docs", and the REST API at "/api/v1".
 #   1. Push this repo to GitHub.
 #   2. Render Dashboard -> New -> Blueprint -> select the repo.
-#   3. After the first deploy, set the `sync: false` vars (see README) and redeploy.
+#   3. After the first deploy, set PUBLIC_BASE_URL to the service URL and redeploy.
 
 databases:
   - name: agro-postgres
@@ -11,9 +12,9 @@ databases:
     user: agro
 
 services:
-  # ---- API ----
+  # ---- API + bundled dashboard (single service) ----
   - type: web
-    name: agro-api
+    name: agroforestry-analyzer
     runtime: docker
     plan: free
     dockerfilePath: ./apps/api/Dockerfile
@@ -31,20 +32,6 @@ services:
       - key: WEATHER_AI_API_KEY
         sync: false
       - key: PUBLIC_BASE_URL
-        sync: false # set to the API's own URL, e.g. https://agro-api.onrender.com
+        sync: false # set to this service's own URL, e.g. https://agroforestry-analyzer.onrender.com
       - key: CORS_ORIGINS
-        sync: false # set to the web URL, e.g. https://agro-web.onrender.com
-
-  # ---- Web (static site) ----
-  - type: web
-    name: agro-web
-    runtime: static
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @agro/web build
-    staticPublishPath: ./apps/web/dist
-    envVars:
-      - key: VITE_API_URL
-        sync: false # set to the API URL, e.g. https://agro-api.onrender.com
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+        sync: false # optional; the UI is same-origin. Set if you also call the API from elsewhere.

@@ -7,12 +7,16 @@ FROM node:22-slim AS build
 RUN corepack enable && apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 WORKDIR /repo
 
-# Install only the api's dependency graph, leveraging Docker layer caching.
+# Install the workspace (api + web), leveraging Docker layer caching.
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.base.json ./
 COPY apps/api/package.json apps/api/package.json
-RUN pnpm install --filter @agro/api... --frozen-lockfile
+COPY apps/web/package.json apps/web/package.json
+RUN pnpm install --frozen-lockfile --prod=false
 
-# Build (prisma client + nest compile).
+# Build the React dashboard first (no VITE_API_URL -> same-origin relative calls),
+# then the API (prisma client + nest compile). The API serves apps/web/dist at "/".
+COPY apps/web apps/web
+RUN pnpm --filter @agro/web build
 COPY apps/api apps/api
 RUN pnpm --filter @agro/api exec prisma generate \
   && pnpm --filter @agro/api build

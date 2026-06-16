@@ -7,7 +7,9 @@ import type {
   WeatherInsight,
 } from './types';
 
-const BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+// Default to same-origin (relative) so the bundled app works when the API serves it.
+// In split/local dev set VITE_API_URL (e.g. http://localhost:3001) at build time.
+const BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
 const API = `${BASE}/api/v1`;
 
 /** Surfaces the API's RFC7807 `problem+json` detail as the error message. */
