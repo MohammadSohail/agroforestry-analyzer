@@ -4,9 +4,10 @@ import { api } from '../api/client';
 import { Card, SectionTitle } from './ui';
 
 const SAMPLES = [
-  { file: 'canopy-dense.png', label: 'Dense canopy' },
-  { file: 'canopy-sparse.png', label: 'Sparse canopy' },
-  { file: 'canopy-stressed.png', label: 'Stressed canopy' },
+  { file: 'aerial-forest.webp', label: 'Aerial photo', type: 'image/webp' },
+  { file: 'canopy-dense.png', label: 'Dense canopy', type: 'image/png' },
+  { file: 'canopy-sparse.png', label: 'Sparse canopy', type: 'image/png' },
+  { file: 'canopy-stressed.png', label: 'Stressed canopy', type: 'image/png' },
 ];
 
 export function UploadCard({ plotId }: { plotId: string }) {
@@ -25,11 +26,11 @@ export function UploadCard({ plotId }: { plotId: string }) {
     onError: () => setPending(null),
   });
 
-  async function runSample(sample: { file: string; label: string }) {
+  async function runSample(sample: { file: string; label: string; type: string }) {
     setPending(sample.label);
     const res = await fetch(`${import.meta.env.BASE_URL}samples/${sample.file}`);
     const blob = await res.blob();
-    mutation.mutate(new File([blob], sample.file, { type: 'image/png' }));
+    mutation.mutate(new File([blob], sample.file, { type: sample.type }));
   }
 
   return (
