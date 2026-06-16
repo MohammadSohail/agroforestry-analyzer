@@ -21,3 +21,6 @@ apps/api/data/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# local harness settings
+.claude/
